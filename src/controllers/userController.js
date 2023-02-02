@@ -1,36 +1,8 @@
 const express = require("express");
 const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
-const aws = require("aws-sdk");
+const bcrypt = require('bcrypt')
 const validation = require("../validations/validation");
-
-aws.config.update({
-  accessKeyId: "AKIAY3L35MCRZNIRGT6N",
-  secretAccessKey: "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",
-  region: "ap-south-1",
-});
-
-let uploadFile = async (file) => {
-  return new Promise(function (resolve, reject) {
-    let s3 = new aws.S3({ apiVersion: "2006-03-01" });
-
-    var uploadParams = {
-      ACL: "public-read", //Access Control Locator
-      Bucket: "classroom-training-bucket",
-      Key: "abc/" + file.originalname,
-      Body: file.buffer,
-    };
-
-    s3.upload(uploadParams, function (err, data) {
-      if (err) {
-        return reject({ error: err });
-      }
-      //   console.log(data);
-      console.log("file uploaded succesfully");
-      return resolve(data.Location);
-    });
-  });
-};
 
 const register = async (req, res) => {
   // there are 3 problems have to resolve ==> 1. address , fname validation , bycrpt
@@ -96,7 +68,7 @@ const register = async (req, res) => {
         .send({ status: false, message: "please provide valid last  name " });
     }
 
-    //================================ email ======
+    //================================ email ========
 
     if (!email) {
       return res
@@ -199,7 +171,16 @@ const register = async (req, res) => {
       });
     }
 
+    //Profile image
+
     // bycrypt part password in
+
+    const saltrounds = 10;
+    bcrypt.hash(password, saltrounds, function (err, hash) {
+      if (hash) userData.password = hash;
+      else return res.status(400).send({ status: false, message: "please send another password" })
+    })
+
 
     //======================== address =============
 
@@ -239,7 +220,7 @@ const register = async (req, res) => {
         status: false,
         message: "Address of shipping should be in Object format ",
       });
-// =========street validation=========
+    // =========street validation=========
     if (!address.shipping.street) {
       return res
         .status(400)
@@ -261,7 +242,7 @@ const register = async (req, res) => {
         message: "shipping street  will be in string ",
       });
     }
-   
+
 
     //========= city validation =========================
 
@@ -270,7 +251,7 @@ const register = async (req, res) => {
         .status(400)
         .send({ status: false, message: "shipping city is mandatory " });
     }
-    
+
     address.shipping.city = userData.address.shipping.city = address.shipping.city.trim();
 
     if (address.shipping.city == "") {
@@ -297,8 +278,7 @@ const register = async (req, res) => {
     }
 
     // address.shipping.pincode = userData.address.shipping.pincode =  address.shipping.pincode.trim(); 
-if(!validation.validatePincode(address.shipping.pincode))
-{return res.status(400).send({status:false , message:"please provide valid shipping pincode"})}
+    if (!validation.validatePincode(address.shipping.pincode)) { return res.status(400).send({ status: false, message: "please provide valid shipping pincode" }) }
 
     if (address.shipping.pincode == "") {
       return res.status(400).send({
@@ -328,12 +308,10 @@ if(!validation.validatePincode(address.shipping.pincode))
     }
 
     if (typeof address.billing != "object")
-    return res.status(400).send({
-      status: false,
-      message: "Address of billing should be in Object format ",
-    });
-
-
+      return res.status(400).send({
+        status: false,
+        message: "Address of billing should be in Object format ",
+      });
 
 
     if (!address.billing.street) {
@@ -348,7 +326,7 @@ if(!validation.validatePincode(address.shipping.pincode))
       });
     }
 
-        address.billing.street = address.billing.street.trim();
+    address.billing.street = address.billing.street.trim();
 
     if (address.billing.street == "") {
       return res.status(400).send({
@@ -379,7 +357,7 @@ if(!validation.validatePincode(address.shipping.pincode))
       });
     }
 
-    
+
 
 
     //====pincode
@@ -391,10 +369,9 @@ if(!validation.validatePincode(address.shipping.pincode))
     }
 
     // address.billing.pincode = address.billing.pincode.trim();
-    
-    if(!validation.validatePincode(address.shipping.pincode))
-    {return res.status(400).send({status:false , message:"please provide valid shipping pincode"})}
-    
+
+    if (!validation.validatePincode(address.shipping.pincode)) { return res.status(400).send({ status: false, message: "please provide valid shipping pincode" }) }
+
 
     if (address.billing.pincode == "") {
       return res.status(400).send({
@@ -417,17 +394,7 @@ if(!validation.validatePincode(address.shipping.pincode))
 
     //AWS
 
-    profileImage = req.files;
-
-    if (Object.keys(profileImage).length == 0) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Please upload Profile Image" });
-    }
-
-    let image = await uploadFile(profileImage[0]);
-
-    userData.profileImage = image;
+    userData.profileImage = req.image;
 
     const usercreated = await userModel.create(userData);
 
@@ -502,10 +469,15 @@ const loginUser = async (req, res) => {
         message: "No user found with given credentials ",
       });
 
+    bcrypt.compare(password, isUserExist.password, function (err, matched) {
+      if (err) return res.status(400).send({ status: false, message: "Please enter valid password" })
+    })
+
     let token = jwt.sign(
       { userId: isUserExist._id, exp: Math.floor(Date.now() / 1000) + 5 },
       "project5"
     );
+
     let tokenInfo = { userId: isUserExist._id, token: token };
 
     res.status(200).send({
