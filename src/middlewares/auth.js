@@ -1,25 +1,19 @@
-// const saltrounds=10;
-//     bcrypt.hash(password, saltrounds ,function(err, hash){
-//         if(hash) userData.password=hash;
-//         else return res.status(400).send({status:false, message:"please send another password"})
-//     })
-
-//     bcrypt.compare(password, isUserExist.password, function(err, matched){
-//         if(err) return res.status(400).send({status:false, message:"Please enter valid password"})
-//       })
-
-
 const jwt = require('jsonwebtoken')
 const { isValidObjectId } = require('mongoose')
 const userModel = require('../models/userModel')
 
 const authentication = function(req,res,next){
     try {
-        let token = req.headers.authorization
+        let token = req.headers['authorization']
+
         if(!token){
-            return res.status(404).send({status: false, message: "Token not resent"})
+            return res.status(404).send({status: false, message: "Token not present"})
         }
-        let decodedToken = jwt.verify(token,'project5')
+
+        token = token.split(" ")
+
+        console.log(token[1])
+        let decodedToken = jwt.verify(token[1],'project5')
         if(!decodedToken){
             return res.status(401).send({status: false, message: 'invalid token'})
         }
@@ -35,6 +29,7 @@ const authorization = async function(req,res,next){
     try {
         let tokenId = req.userId
         let paramUserId = req.params.userId
+console.log("Akhilesh ki error");
         if(paramUserId){
             if(!isValidObjectId(paramUserId)){
                 return res.status(400).send({status: false, message: "invalid user id"})
@@ -43,8 +38,8 @@ const authorization = async function(req,res,next){
             if(!userData){
                 return res.status(404).send({status: false, message: "No user found"})
             }
-            let userId = userData._id
-            if(userId != tokenId){
+
+            if(paramUserId != tokenId){
                 return res.status(403).send({status: false, message: "Unauthorised user access"})
             }
         }
