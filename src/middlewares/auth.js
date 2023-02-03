@@ -29,7 +29,7 @@ const authorization = async function(req,res,next){
     try {
         let tokenId = req.userId
         let paramUserId = req.params.userId
-console.log("Akhilesh ki error");
+
         if(paramUserId){
             if(!isValidObjectId(paramUserId)){
                 return res.status(400).send({status: false, message: "invalid user id"})

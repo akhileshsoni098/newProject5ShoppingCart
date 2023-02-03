@@ -407,7 +407,7 @@ const loginUser = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Please enter valid Email" });
 
-    if (!password || (password != undefined && typeof password != "string"))
+    if (!password)
       return res
         .status(400)
         .send({ status: false, message: "Please enter password" });
@@ -445,7 +445,7 @@ const loginUser = async (req, res) => {
     if (!passwordCompare) return res.status(400).send({ status: false, message: "Please enter valid password" })
 
     let token = jwt.sign(
-      { userId: isUserExist._id, exp: Math.floor(Date.now() / 1000) + 12000 },
+      { userId: isUserExist._id, exp: Math.floor(Date.now() / 1000) + 12000000 },
       "project5"
     );
 
@@ -485,12 +485,12 @@ const UpdateUser = async function (req, res) {
 
     const userId = req.params.userId
     let userData = req.body
-    let { fname, lname, email,profileImage, phone, password, address } = userData
+    let { fname, lname, email, phone, password, address } = userData
 
-    // let profileImage = req.files;
+    let profileImage = req.files;
 
-    // if (profileImage) userData.length += 1
-    
+    if (profileImage) userData.length += 1
+
 
     if (Object.keys(userData).length == 0) {
       return res.status(400).send({ status: false, message: "Please provide some data to update user" })
@@ -547,10 +547,16 @@ const UpdateUser = async function (req, res) {
 
       email = userData.email = email.trim()
 
-      userExist = await userModel.findOne({ $or: [{ email: email, phone: phone }] })
-      if (userExist.email == email) // check 
-        return res.status(400).send({ status: false, message: "email is  already exists" })
+     let userExist = await userModel.findOne({ $or: [{ email: email}, {phone: phone }] })
+
+      console.log(userExist);
+      if (userExist) {
+        if (userExist.email == email) // check 
+          return res.status(400).send({ status: false, message: "email is  already exists" })
+      }
     }
+
+
     //============================== phone
     if (phone) {
 
@@ -559,8 +565,11 @@ const UpdateUser = async function (req, res) {
       if (phone == "") return res.status(400).send({ status: false, message: "Please provide value of phone" })
 
       phone = userData.phone = phone.trim()
-      if (userExist.phone == phone) // check 
+      
+      if (userExist) {
+        if (userExist.phone == phone) // check 
         return res.status(400).send({ status: false, message: "phone is  already exists" })
+      }
     }
 
     //============================  password
@@ -708,20 +717,13 @@ const UpdateUser = async function (req, res) {
         }
       }
     }
-    let files = req.files
 
-    if (files && files.length != 0) {
-     
-     userData.profileImage= files
-  }
- 
     // progile image
-    userData.profileImage = req.image; 
-    // profileImage = userData.profileImage = req.image
+    profileImage = userData.profileImage = req.image
 
     const updatedUser = await userModel.findByIdAndUpdate({ _id: userId },
       {
-        $set: { fname: fname, lname: lname, email: email, profileImage: userData.profileImage, phone: phone, password: userData.password, address: address },
+        $set: { fname: fname, lname: lname, email: email, profileImage: profileImage, phone: phone, password: userData.password, address: address },
       }, { new: true });
 
     return res.status(200).send({ status: true, message: "User profile updated", data: updatedUser })
