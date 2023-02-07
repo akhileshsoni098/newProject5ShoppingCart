@@ -2,30 +2,32 @@ const jwt = require('jsonwebtoken')
 const { isValidObjectId } = require('mongoose')
 const userModel = require('../models/userModel')
 
-const authentication = function(req,res,next){
+const authentication = (req,res,next)=>{
     try {
         let token = req.headers['authorization']
 
         if(!token){
-            return res.status(404).send({status: false, message: "Token not present"})
+            return res.status(400).send({status: false, message: "Token not present"})
         }
 
         token = token.split(" ")
 
         console.log(token[1])
-        let decodedToken = jwt.verify(token[1],'project5')
-        if(!decodedToken){
-            return res.status(401).send({status: false, message: 'invalid token'})
+
+        jwt.verify(token[1],'project5',function(err, decoded){
+            if(err) return res.status(401).send({status: false, message: err.message}) 
+            
+           else {
+            req.userId = decoded.userId
+            next()
         }
-        req.userId = decodedToken.userId
-        next()
+        })             
     } catch (error) {
-        res.status(500).send({status: false, message: error.message})
+       return res.status(500).send({status: false, message: error.message})
     }
 }
 
-
-const authorization = async function(req,res,next){
+const authorization = async (req,res,next)=>{
     try {
         let tokenId = req.userId
         let paramUserId = req.params.userId
@@ -40,13 +42,13 @@ const authorization = async function(req,res,next){
             }
 
             if(paramUserId != tokenId){
-                return res.status(403).send({status: false, message: "Unauthorised user access"})
+                return res.status(403).send({status: false, message: "Unauthorised User Access"})
             }
         }
         next()
 
     } catch (error) {
-         res.status(500).send({status: false, message: error.message})
+        return res.status(500).send({status: false, message: error.message})
     }
 }
 

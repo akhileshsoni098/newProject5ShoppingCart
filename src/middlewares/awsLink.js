@@ -40,8 +40,10 @@ const awsLink = async (req, res, next) => {
 
 const awsUpdate = async (req, res, next) => {
     try {
+        
         let profileImage = req.files;
-        if (Object.keys(profileImage).length == 0) return next()
+        if (!profileImage || Object.keys(profileImage).length == 0) return next()
+       
         let image = await uploadFile(profileImage[0]);
         req.image = image;
         next()
