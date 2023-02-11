@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         min: 8,
         max: 15
-    }, // encrypted password
+    }, 
     address: {
         shipping: {
             street: {

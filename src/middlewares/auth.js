@@ -38,7 +38,7 @@ const authorization = async (req,res,next)=>{
             }
             let userData = await userModel.findById(paramUserId)
             if(!userData){
-                return res.status(404).send({status: false, message: "No user found"})
+                return res.status(404).send({status: false, message: "No user found for this UserId"})
             }
 
             if(paramUserId != tokenId){

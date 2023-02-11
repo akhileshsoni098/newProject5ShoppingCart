@@ -30,23 +30,33 @@ let uploadFile = async (file) => {
 const awsLink = async (req, res, next) => {
     try {
         let profileImage = req.files;
-        if (Object.keys(profileImage).length == 0) return res.status(400).send({ status: false, message: "Please upload Profile Image" });
-        let image = await uploadFile(profileImage[0]);
-        req.image = image;
-        next()
+        if (profileImage) {
+            if (Object.keys(profileImage).length == 0) return res.status(400).send({ status: false, message: "Please upload Profile Image" });
+            let image = await uploadFile(profileImage[0]);
+            req.image = image;
+            next()
+        }
+        else {
+            return res.status(400).send({ status: false, message: "Please upload Profile Image" });
+        }
     }
     catch (err) { return res.status(500).send({ status: false, error: err.message }) }
 }
 
 const awsUpdate = async (req, res, next) => {
     try {
-        
+
         let profileImage = req.files;
-        if (!profileImage || Object.keys(profileImage).length == 0) return next()
-       
-        let image = await uploadFile(profileImage[0]);
-        req.image = image;
-        next()
+        if (profileImage) {
+            if (!profileImage || Object.keys(profileImage).length == 0) return next()
+
+            let image = await uploadFile(profileImage[0]);
+            req.image = image;
+            next()
+        }
+        else {
+            return res.status(400).send({ status: false, message: "Please upload Some data" });
+        }
     }
     catch (err) { return res.status(500).send({ status: false, error: err.message }) }
 }
@@ -54,12 +64,17 @@ const awsUpdate = async (req, res, next) => {
 const awsProduct = async (req, res, next) => {
     try {
         let productImage = req.files;
-        if (Object.keys(productImage).length == 0) return res.status(400).send({ status: false, message: "Please upload Profile Image" });
-        let image = await uploadFile(productImage[0]);
-        req.image = image;
-        next()
+        if (productImage) {
+            if (Object.keys(productImage).length == 0) return res.status(400).send({ status: false, message: "Please select Product Image to upload" });
+            let image = await uploadFile(productImage[0]);
+            req.image = image;
+            next()
+        }
+        else {
+            return res.status(400).send({ status: false, message: "Please upload Product Image" });
+        }
     }
     catch (err) { return res.status(500).send({ status: false, error: err.message }) }
 }
 
-module.exports={awsLink, awsUpdate, awsProduct}
+module.exports = { awsLink, awsUpdate, awsProduct }

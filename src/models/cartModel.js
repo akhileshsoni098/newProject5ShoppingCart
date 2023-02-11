@@ -4,13 +4,17 @@ const ObjectId = mongoose.Schema.Types.ObjectId;
 const cartSchema = new mongoose.Schema(
     {
         userId: {
-            type: ObjectId
+            type: ObjectId,
+            ref: 'user',
+            required:true,
+            unique:true 
         },
         items: [{
             productId: {
                 type: ObjectId,
+                ref:'product',
                 required: true,
-                // unique: true
+               
             },
             quantity: {
                 type: Number,
@@ -20,16 +24,13 @@ const cartSchema = new mongoose.Schema(
         }],
         totalPrice: {
             type: Number,
-            // required: true
+            required: true
         },
         totalItems: {
             type: Number,
-            // required: true
+            required: true
         },
-        // isDeleted:{
-        //     type:Boolean,
-        //     default:false
-        // }
+       
     }, { timestamps: true })
 
 

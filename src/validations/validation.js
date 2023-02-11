@@ -1,7 +1,7 @@
 //Name
 
 const validateName = (name) => {
-  return /^[A-Z](?=.{1,50}$)[a-z]+(?:['_.\s][a-z]+)*$/i.test(name);
+  return /^([a-zA-Z ]){2,30}$/.test(name);
 };
 
 // Email
@@ -20,7 +20,7 @@ const validatePassword = (password) => {
 //Phone
 
 const validateMobileNo = (Number) => {
-  return /^((\+91)?|91)?[6789][0-9]{9}$/g.test(Number);
+  return /^[6789][0-9]{9}$/g.test(Number);
 };
 
 //Place
@@ -36,7 +36,7 @@ const validatePincode = (pincode) => {
 };
 
 const validateTitle = (title) => {
-  return /^[A-Z](?=.{1,15}$)[a-z]+(?:['_.\s][a-z]+)*$/.test(title) // 1 character Caps , range - 1-15
+  return /^([a-zA-Z\d ]){2,30}$/.test(title) 
 }
 
 const validatePrice = (price) => {
@@ -46,6 +46,10 @@ const validatePrice = (price) => {
 
 const validateInstallments = (installment) => {
   return /^(0(?!)|[1-9]\d{0,1})$/.test(installment)
+}
+
+const validateStyle = (style) =>{
+  return /^[a-z A-Z]+$/.test(style) 
 }
 
 
@@ -58,5 +62,6 @@ module.exports = {
   validatePlace,
   validateTitle,
   validatePrice,
-  validateInstallments
+  validateInstallments,
+  validateStyle
 };
